@@ -1,0 +1,95 @@
+.address-list {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    word-break: break-all;
+}
+
+.address-item {
+    margin: 5px 0;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.address-item:last-child {
+    border-bottom: none;
+}
+
+.balances {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.balance {
+    margin: 5px 0;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+.balance:last-child {
+    border-bottom: none;
+}
+
+.address {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-right: 5px;
+}
+
+.current-wallet {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.current-wallet h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.current-wallet .address,
+.current-wallet .seed-phrase {
+    font-weight: bold;
+    color: #2c3e50;
+    word-break: break-all;
+    display: block;
+    margin: 5px 0;
+}
+
+.wallet-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.wallet-actions button {
+    padding: 5px 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.wallet-actions button:hover {
+    background-color: #2980b9;
+} 

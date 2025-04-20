@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimplePoW Blockchain</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .block {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: white;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .balance {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .pending-transactions {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-radius: 4px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .wallet-section {
+            margin-bottom: 20px;
+        }
+        .address {
+            font-family: monospace;
+            word-break: break-all;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        #loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .wallet-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .copy-btn {
+            background-color: #6c757d;
+        }
+        .copy-btn:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading application...</div>
+    
+    <div id="app" style="display: none;">
+        <h1>SimplePoW Blockchain</h1>
+        
+        <div class="section wallet-section">
+            <h2>Wallet Management</h2>
+            <button id="createWalletBtn">Create New Wallet</button>
+            <div id="currentWallet" class="address"></div>
+            <div id="walletStatus" class="status"></div>
+        </div>
+
+        <div class="container">
+            <div class="section">
+                <h2>Create Transaction</h2>
+                <div class="input-group">
+                    <div class="tooltip">
+                        <input type="text" id="fromAddress" placeholder="From Address">
+                        <span class="tooltiptext" id="fromAddressTooltip"></span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="tooltip">
+                        <input type="text" id="toAddress" placeholder="To Address">
+                        <span class="tooltiptext" id="toAddressTooltip"></span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="tooltip">
+                        <input type="number" id="amount" placeholder="Amount">
+                        <span class="tooltiptext" id="amountTooltip"></span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="tooltip">
+                        <button id="createTransactionBtn">Create Transaction</button>
+                        <span class="tooltiptext" id="createTransactionTooltip"></span>
+                    </div>
+                </div>
+                <div id="transactionStatus" class="status"></div>
+            </div>
+
+            <div class="section">
+                <h2>Mine Block</h2>
+                <div class="input-group">
+                    <div class="tooltip">
+                        <input type="text" id="minerAddress" placeholder="Miner Address">
+                        <span class="tooltiptext" id="minerAddressTooltip"></span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="tooltip">
+                        <button id="mineBlockBtn">Mine Pending Transactions</button>
+                        <span class="tooltiptext" id="mineBlockTooltip"></span>
+                    </div>
+                </div>
+                <div id="miningStatus" class="status"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Pending Transactions</h2>
+            <div id="pendingTransactions" class="pending-transactions"></div>
+        </div>
+
+        <div class="section">
+            <h2>Blockchain</h2>
+            <div id="blockchain"></div>
+        </div>
+
+        <div class="section">
+            <h2>Address Balances</h2>
+            <div id="balances"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        console.log('Module script starting...');
+        try {
+            console.log('Attempting to import main.js...');
+            const module = await import('/src/main.js');
+            console.log('main.js imported successfully:', module);
+            
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    console.log('DOM fully loaded, showing app...');
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                });
+            } else {
+                console.log('DOM already loaded, showing app...');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error loading application:', error);
+            document.getElementById('loading').innerHTML = `
+                <div class="error">
+                    Error loading application: ${error.message}
+                    <br>
+                    Please check the console for details.
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 
