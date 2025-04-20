@@ -212,8 +212,21 @@
         console.log('Module script starting...');
         try {
             console.log('Attempting to import main.js...');
-            const module = await import('/src/main.js');
-            console.log('main.js imported successfully:', module);
+            const { 
+                createWallet, 
+                createTransaction, 
+                mineBlock, 
+                copyToClipboard, 
+                useWalletAddress, 
+                restoreWallet 
+            } = await import('/src/main.js');
+            
+            console.log('main.js imported successfully');
+            
+            // Set up button event listeners
+            document.getElementById('createWalletBtn').onclick = createWallet;
+            document.getElementById('createTransactionBtn').onclick = createTransaction;
+            document.getElementById('mineBlockBtn').onclick = mineBlock;
             
             // Wait for DOM to be ready
             if (document.readyState === 'loading') {

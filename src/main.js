@@ -122,7 +122,118 @@ function loadCurrentWallet() {
     }
 }
 
-// Add utility functions
+// Export all functions
+export {
+    createWallet,
+    createTransaction,
+    mineBlock,
+    copyToClipboard,
+    useWalletAddress,
+    restoreWallet
+};
+
+// Function declarations
+async function createWallet() {
+    console.log('createWallet function called');
+    try {
+        const wallet = new Wallet();
+        await wallet.generateAddress();
+        wallets.set(wallet.address, wallet);
+        await saveWallet(wallet);
+        showStatus('success', 'New wallet created!');
+        updateUI();
+    } catch (error) {
+        console.error('Error in createWallet:', error);
+        showStatus('error', 'Error creating wallet: ' + error.message);
+    }
+}
+
+async function createTransaction() {
+    console.log('createTransaction function called');
+    try {
+        const fromAddress = document.getElementById('fromAddress').value;
+        const toAddress = document.getElementById('toAddress').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+
+        console.log('Transaction details:', { fromAddress, toAddress, amount });
+
+        if (!Wallet.isValidAddress(fromAddress) || !Wallet.isValidAddress(toAddress)) {
+            showStatus('error', 'Invalid address format. Addresses must follow the format: SPW-xxxxxxxx-xxxxxxxx-xxxxxxxx');
+            return;
+        }
+
+        if (!amount || amount <= 0) {
+            showStatus('error', 'Please enter a valid amount greater than 0');
+            return;
+        }
+
+        const balance = blockchain.getBalanceOfAddress(fromAddress);
+        if (balance < amount) {
+            showStatus('error', `Insufficient balance. Current balance: ${balance}`);
+            return;
+        }
+
+        const wallet = wallets.get(fromAddress);
+        if (!wallet) {
+            showStatus('error', 'Wallet not found for sender address');
+            return;
+        }
+
+        const transaction = {
+            from: fromAddress,
+            to: toAddress,
+            amount: amount,
+            timestamp: Date.now()
+        };
+
+        // Sign the transaction
+        transaction.signature = await wallet.sign(JSON.stringify(transaction));
+
+        blockchain.createTransaction(transaction);
+        showStatus('success', 'Transaction created and added to pending transactions!');
+        updateUI();
+    } catch (error) {
+        console.error('Error in createTransaction:', error);
+        showStatus('error', 'Error creating transaction: ' + error.message);
+    }
+}
+
+async function mineBlock() {
+    console.log('mineBlock function called');
+    try {
+        const minerAddress = document.getElementById('minerAddress').value;
+        
+        if (!Wallet.isValidAddress(minerAddress)) {
+            showStatus('error', 'Invalid miner address format. Addresses must follow the format: SPW-xxxxxxxx-xxxxxxxx-xxxxxxxx');
+            return;
+        }
+
+        // Check if miner has a wallet
+        const minerWallet = wallets.get(minerAddress);
+        if (!minerWallet) {
+            showStatus('error', 'You need a wallet to mine. Please create or restore a wallet first.');
+            return;
+        }
+
+        if (blockchain.pendingTransactions.length === 0) {
+            showStatus('error', 'No pending transactions to mine');
+            return;
+        }
+
+        // Show mining progress
+        showStatus('info', 'Mining in progress... This may take a few seconds.');
+        
+        // Mine the block
+        await blockchain.minePendingTransactions(minerAddress);
+        
+        showStatus('success', 'Block mined successfully! Mining reward: 100 coins');
+        updateUI();
+    } catch (error) {
+        console.error('Error in mineBlock:', error);
+        showStatus('error', 'Error mining block: ' + error.message);
+    }
+}
+
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
         showStatus('success', 'Copied to clipboard!');
@@ -137,7 +248,6 @@ function useWalletAddress(address) {
     showStatus('success', 'Address set as sender');
 }
 
-// Add restore wallet functionality
 async function restoreWallet() {
     const seedPhrase = prompt('Enter your seed phrase to restore wallet:');
     if (seedPhrase) {
@@ -152,14 +262,6 @@ async function restoreWallet() {
         }
     }
 }
-
-// Make functions available globally
-window.createWallet = createWallet;
-window.createTransaction = createTransaction;
-window.mineBlock = mineBlock;
-window.copyToClipboard = copyToClipboard;
-window.useWalletAddress = useWalletAddress;
-window.restoreWallet = restoreWallet;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', async () => {
@@ -250,110 +352,6 @@ function initializeTooltips() {
     // Set tooltips for buttons
     document.getElementById('createTransactionTooltip').textContent = CONFIG.TOOLTIPS.CREATE_TRANSACTION;
     document.getElementById('mineBlockTooltip').textContent = CONFIG.TOOLTIPS.MINE_BLOCK;
-}
-
-// Update createWallet function
-async function createWallet() {
-    console.log('createWallet function called');
-    try {
-        const wallet = new Wallet();
-        await wallet.generateAddress();
-        wallets.set(wallet.address, wallet);
-        await saveWallet(wallet);
-        showStatus('success', 'New wallet created!');
-        updateUI();
-    } catch (error) {
-        console.error('Error in createWallet:', error);
-        showStatus('error', 'Error creating wallet: ' + error.message);
-    }
-}
-
-// Update createTransaction function
-async function createTransaction() {
-    console.log('createTransaction function called');
-    try {
-        const fromAddress = document.getElementById('fromAddress').value;
-        const toAddress = document.getElementById('toAddress').value;
-        const amount = parseFloat(document.getElementById('amount').value);
-
-        console.log('Transaction details:', { fromAddress, toAddress, amount });
-
-        if (!Wallet.isValidAddress(fromAddress) || !Wallet.isValidAddress(toAddress)) {
-            showStatus('error', 'Invalid address format. Addresses must follow the format: SPW-xxxxxxxx-xxxxxxxx-xxxxxxxx');
-            return;
-        }
-
-        if (!amount || amount <= 0) {
-            showStatus('error', 'Please enter a valid amount greater than 0');
-            return;
-        }
-
-        const balance = blockchain.getBalanceOfAddress(fromAddress);
-        if (balance < amount) {
-            showStatus('error', `Insufficient balance. Current balance: ${balance}`);
-            return;
-        }
-
-        const wallet = wallets.get(fromAddress);
-        if (!wallet) {
-            showStatus('error', 'Wallet not found for sender address');
-            return;
-        }
-
-        const transaction = {
-            from: fromAddress,
-            to: toAddress,
-            amount: amount,
-            timestamp: Date.now()
-        };
-
-        // Sign the transaction
-        transaction.signature = await wallet.sign(JSON.stringify(transaction));
-
-        blockchain.createTransaction(transaction);
-        showStatus('success', 'Transaction created and added to pending transactions!');
-        updateUI();
-    } catch (error) {
-        console.error('Error in createTransaction:', error);
-        showStatus('error', 'Error creating transaction: ' + error.message);
-    }
-}
-
-// Update mineBlock function
-async function mineBlock() {
-    console.log('mineBlock function called');
-    try {
-        const minerAddress = document.getElementById('minerAddress').value;
-        
-        if (!Wallet.isValidAddress(minerAddress)) {
-            showStatus('error', 'Invalid miner address format. Addresses must follow the format: SPW-xxxxxxxx-xxxxxxxx-xxxxxxxx');
-            return;
-        }
-
-        // Check if miner has a wallet
-        const minerWallet = wallets.get(minerAddress);
-        if (!minerWallet) {
-            showStatus('error', 'You need a wallet to mine. Please create or restore a wallet first.');
-            return;
-        }
-
-        if (blockchain.pendingTransactions.length === 0) {
-            showStatus('error', 'No pending transactions to mine');
-            return;
-        }
-
-        // Show mining progress
-        showStatus('info', 'Mining in progress... This may take a few seconds.');
-        
-        // Mine the block
-        await blockchain.minePendingTransactions(minerAddress);
-        
-        showStatus('success', 'Block mined successfully! Mining reward: 100 coins');
-        updateUI();
-    } catch (error) {
-        console.error('Error in mineBlock:', error);
-        showStatus('error', 'Error mining block: ' + error.message);
-    }
 }
 
 function updateUI() {
